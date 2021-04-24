@@ -17,6 +17,7 @@ module TestApp
     config.active_support.test_order = :random
     config.secret_key_base = "abc123"
     config.eager_load = false
+    config.hosts << "www.example.com"
   end
 end
 
