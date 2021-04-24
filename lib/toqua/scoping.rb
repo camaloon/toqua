@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Toqua
   module Scoping
     extend ActiveSupport::Concern
@@ -10,23 +12,41 @@ module Toqua
       s
     end
 
+    class ScopeApplicable
+      def self.accept?(opts, context)
+        if_condition(context, opts) && action_condition(context, opts)
+      end
+
+      def self.action_condition(context, opts)
+        if opts[:only]
+          [opts[:only]].flatten.include?(context.action_name.to_sym)
+        else
+          true
+        end
+      end
+
+      def self.if_condition(context, opts)
+        if opts[:if]
+          !!evaluate(context, opts[:if])
+        elsif opts[:unless]
+          !evaluate(context, opts[:unless])
+        else
+          true
+        end
+      end
+
+      def self.evaluate(context, object)
+        if object.respond_to?(:call)
+          context.instance_exec(&object)
+        else
+          context.send(object)
+        end
+      end
+    end
+
     def __run_scope(relation, scope, opts)
-      if_condition = if opts[:if]
-                       opts[:if].respond_to?(:call) ? !!instance_exec(&opts[:if]) : send(opts[:if])
-                     elsif opts[:unless]
-                       opts[:unless].respond_to?(:call) ? !instance_exec(&opts[:unless]) : !send(opts[:unless])
-                     else
-                       true
-                     end
-
-      action_condition = if opts[:only]
-                           [opts[:only]].flatten.include?(action_name.to_sym)
-                         else
-                           true
-                         end
-
-      if if_condition && action_condition
-        self.instance_exec(relation, &scope)
+      if ScopeApplicable.accept?(opts, self)
+        instance_exec(relation, &scope)
       else
         relation
       end

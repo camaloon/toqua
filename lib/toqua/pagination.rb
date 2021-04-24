@@ -26,8 +26,8 @@ module Toqua
         scope(scope_opts) do |scope|
           @paginated = true
 
-          @page = params.fetch(page_key, opts.fetch(:page, DEFAULT_PAGE))
-          per = params.fetch(per_page_key, opts.fetch(:per, DEFAULT_PER_PAGE))
+          @page = params.to_unsafe_h.fetch(page_key, opts.fetch(:page, DEFAULT_PAGE))
+          per = params.to_unsafe_h.fetch(per_page_key, opts.fetch(:per, DEFAULT_PER_PAGE))
 
           if opts[:headers]
             scope_count = scope.count

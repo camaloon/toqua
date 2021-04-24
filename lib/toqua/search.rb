@@ -38,7 +38,7 @@ module Toqua
 
     class_methods do
       def searchable
-        scope { |s| s.filter(search_params) }
+        scope { |s| s.doure_filter(search_params) }
       end
     end
   end
